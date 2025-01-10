@@ -64,7 +64,7 @@ flattenmarketlistdata <- function(data){
 # example 
 foo <- slurpdownmarkets(max=10000);
 # have to use slugs, for some reason the IDs aren't always returning results
-# here we collect detailed, answer-level info for each market of interest
+# here we collect detailed, answer-level summary info for each market of interest
 bar <- foo$slug %>% intersect(slugs) %>% 
   lapply(function(xx) {
     try(get_market(market_id_or_slug = xx)$content %>% flattenmarketlistdata)
@@ -75,6 +75,7 @@ baz <- unique(bar$id) %>% sapply(function(xx){
   manifold_api(endpoint='/v0/bets',request_type='GET'
                ,params_list=list(contractId=xx))$content}) %>%
   flatten() %>% lapply(flattenmarketlistdata) %>% bind_rows();
+# plot the time series
 baz %>% ggplot(aes(x=updatedTime,y=probBefore
                    ,group=paste0(contractId,':',answerId)
                    ,col=paste0(contractId,':',answerId))) + geom_step()
