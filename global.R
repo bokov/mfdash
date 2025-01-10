@@ -2,6 +2,7 @@ library(dplyr);
 library(manifoldr);
 library(ggplot2);
 library(purrr);
+library(progress);
 
 slugs <- c('in-the-eventuality-of-a-nuclear-wea' # z9xpo2Zr22FlLCbUGcbD
            ,'will-israel-strike-irans-nuclear-fa' # tPyn05ZAgL
