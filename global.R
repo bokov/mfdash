@@ -74,11 +74,11 @@ bar <- foo$slug %>% intersect(slugs) %>%
 # here we pull a time-series for each answer/market of interest
 baz <- unique(bar$id) %>% sapply(function(xx){
   manifold_api(endpoint='/v0/bets',request_type='GET'
-               ,params_list=list(contractId=xx))$content}) %>%
-  flatten() %>% lapply(flattenmarketlistdata) %>% bind_rows();
+               ,params_list=list(contractId=xx,includeZeroShareRedemptions='true'))$content}) %>%
+  flatten() %>% lapply(flattenmarketlistdata) %>% bind_rows() %>% 
+  left_join(bar[,c('id.answer','text')],by=c(answerId='id.answer'));
 # plot the time series
 baz %>% ggplot(aes(x=updatedTime,y=probBefore
-                   ,group=paste0(contractId,':',answerId)
-                   ,col=paste0(contractId,':',answerId))) + geom_step()
+                   ,col=text)) + geom_step()
 
 
