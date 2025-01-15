@@ -62,15 +62,27 @@ flattenmarketlistdata <- function(data){
   out;
 }
 
+expandDetails <- function(xx) try(get_market(market_id_or_slug = xx)$content %>% 
+                                    flattenmarketlistdata);
+
 # example 
-foo <- slurpdownmarkets(max=10000);
+
+if(!file.exists('cached_market_data.rdat') || 
+   as.numeric(Sys.time() - file.info('cached_market_data.rdat')$mtime)> 1440){
+  message('Pull down updated market data');
+  market_data <- slurpdownmarkets(max=10000);
+  save(market_data,file='cached_market_data.rdat');
+} else {
+  message('Reusing cached data');
+  load('cached_market_data.rdat');
+};
 # have to use slugs, for some reason the IDs aren't always returning results
 # here we collect detailed, answer-level summary info for each market of interest
-bar <- foo$slug %>% intersect(slugs) %>% 
-  lapply(function(xx) {
-    try(get_market(market_id_or_slug = xx)$content %>% flattenmarketlistdata)
-    }) %>% 
-  bind_rows;
+bar <- market_data$slug %>% intersect(slugs) %>% lapply(expandDetails) %>% bind_rows;
+  # lapply(function(xx) {
+  #   try(get_market(market_id_or_slug = xx)$content %>% flattenmarketlistdata)
+  #   }) %>% 
+  # bind_rows;
 # here we pull a time-series for each answer/market of interest
 baz <- unique(bar$id) %>% sapply(function(xx){
   manifold_api(endpoint='/v0/bets',request_type='GET'
