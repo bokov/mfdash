@@ -1,11 +1,10 @@
 library(shiny)
 library(DT)
 
-
 shinyUI(fluidPage(
-  titlePanel("Market Data Viewer"),
+  titlePanel("MV"),
   tags$script(HTML(
-    "$(document).on('click', '.action-button', function() {
+    "$(document).on('click', '.add-button', function() {
        var slug = this.id.replace('btn_', '');
        Shiny.setInputValue('slugToAdd', slug);
      });
@@ -18,9 +17,19 @@ shinyUI(fluidPage(
        Shiny.setInputValue('detailToPlot', detailID);
      });"
   )),
-  fluidRow(
-    actionButton('debug','Debug'),
-    column(6, DTOutput("market_table")),
-    column(6, DTOutput("details_table"))
+  navbarPage(
+    "Market Data Viewer",
+    header=list(if(file.exists('.debug')) actionButton('debug', 'Debug')),
+    tabPanel(
+      "Market Details",
+      fluidRow(
+        column(6, dataTableOutput("market_table")),
+        column(6, DTOutput("details_table"))
+      )
+    ),
+    tabPanel(
+      "Bets",
+      DTOutput("bets_table")
+    )
   )
-))
+));
