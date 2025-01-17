@@ -68,10 +68,20 @@ expandDetails <- function(xx) try(get_market(market_id_or_slug = xx)$content %>%
 # example 
 
 if(!file.exists('cached_market_data.rdat') || 
-   as.numeric(Sys.time() - file.info('cached_market_data.rdat')$mtime)> 1440){
+   difftime(Sys.time(),file.info('cached_market_data.rdat')$mtime
+            ,units='days') > 1){
   message('Pull down updated market data');
   market_data <- slurpdownmarkets(max=10000);
-  save(market_data,file='cached_market_data.rdat');
+  market_data_for_DT <- transmute(market_data
+                                  ,closeTime,outcomeType, uniqueBettorCount
+                                  , lastUpdatedTime, probability
+                                  , question = sprintf('<a href="%s" target="_blank">%s</a>',url,question)
+                                  ,action = sprintf('<button class="btn btn-success btn-sm add-button" id="btn_%s"><span>&#9654;</span></button>',slug)
+                                  ) %>%
+    datatable(escape = FALSE
+              , options = list(scrollY = "400px", paging = FALSE)
+              , rownames='',selection='none');
+  save(market_data,market_data_for_DT,file='cached_market_data.rdat');
 } else {
   message('Reusing cached data');
   load('cached_market_data.rdat');
@@ -86,7 +96,7 @@ bar <- market_data$slug %>% intersect(slugs) %>% lapply(expandDetails) %>% bind_
 # here we pull a time-series for each answer/market of interest
 baz <- unique(bar$id) %>% sapply(function(xx){
   manifold_api(endpoint='/v0/bets',request_type='GET'
-               ,params_list=list(contractId=xx,includeZeroShareRedemptions='true'))$content}) %>%
+               ,params_list=list(contractId=xx,includeZeroShareRedemptions='true',filterRedemptions='false'))$content}) %>%
   flatten() %>% lapply(flattenmarketlistdata) %>% bind_rows() %>% 
   left_join(bar[,c('id.answer','text')],by=c(answerId='id.answer'));
 # plot the time series
