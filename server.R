@@ -45,8 +45,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$slugToAdd, {
     slug <- input$slugToAdd;
     if(is.null(rv$details) || !slug %in% rv$details$slug){
-      # TODO simply check for slug already existing in rv$details and skip if
-      #      it does or if rv$details is null
       slugDetails <- try(expandDetails(slug), silent = TRUE);
       if (!inherits(slugDetails, 'try-error')) {
         # insert dummy values for numeric markets
